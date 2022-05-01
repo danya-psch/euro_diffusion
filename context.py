@@ -11,16 +11,25 @@ class country:
         self.complete = 0
         self.scoordinates = []
         
-    def add_sity(self, sity):
-        self.scoordinates.append(sity_coordinates(sity.x, sity.y))
+    def add_city(self, city):
+        self.scoordinates.append(city_coordinates(city.x, city.y))
     
     def show(self):
         print(f"{self.name}: {self.complete}")
-    
+
+    @staticmethod
+    def check_input_data(name, xl, yl, xh, yh) -> bool:
+        res = True
+        if not (1 <= xl <= xh <= 10):
+            res = False
+        if not (1 <= yl <= yh <= 10):
+            res = False
+        return res
+
 
 DEF_COINS_NUM = 1000000
 DEF_COINS_DIV = 1000
-class sity:
+class city:
     def __init__(self, x, y, country_names: list, country_name=None):
         self.country_name = country_name
         self.coins = {}
@@ -30,11 +39,12 @@ class sity:
         self.complete = 0    
         self.x = x
         self.y = y
-    
-    def is_euro_sity(self):
+        
+    @property
+    def european(self):
         return self.country_name is not None
 
-class sity_coordinates:
+class city_coordinates:
     def __init__(self, x, y):
         self.x = x
         self.y = y
@@ -74,13 +84,13 @@ class testcase_data:
 
     def generate_world(self):
         country_names = [c.name for c in self.countries]
-        self.world = [[sity(i, j, country_names) for i in range(self.yl, self.yh)] for j in range(self.xl, self.xh)]
+        self.world = [[city(i, j, country_names) for i in range(self.yl, self.yh)] for j in range(self.xl, self.xh)]
         for c in self.countries:
             for i in range(c.xl, c.xh):
                 for j in range(c.yl, c.yh):
-                    s = sity(i, j, country_names, c.name)
+                    s = city(i, j, country_names, c.name)
                     self.world[i][j] = s
-                    c.add_sity(s)
+                    c.add_city(s)
   
     def check_completion(self) -> bool:
         res = True
@@ -90,13 +100,13 @@ class testcase_data:
                 country_complete = True
                 for sc in c.scoordinates:
                     s = self.world[sc.x][sc.y]
-                    sity_complete = True
+                    city_complete = True
                     for _, val in s.coins.items():
                         if not val:
-                            sity_complete = False
+                            city_complete = False
                             break
                         
-                    if sity_complete:
+                    if city_complete:
                         s.complete = 1
                     if not s.complete and country_complete:
                         country_complete = False
@@ -110,23 +120,23 @@ class testcase_data:
             res = tc_complete
         return res
 
-    def sity_iteration(self, s: sity, temp_world):
+    def city_iteration(self, s: city, temp_world):
         x_more_then_xl = s.x > self.xl
         x_less_then_xh = s.x < self.xh - 1
         y_more_then_yl = s.y > self.yl
         y_less_then_yh = s.y < self.yh - 1
         for coin, value in s.coins.items():
-            diff = int(value / DEF_COINS_DIV)
-            if x_more_then_xl and self.world[s.x - 1][s.y].is_euro_sity():
+            diff = value // DEF_COINS_DIV
+            if x_more_then_xl and self.world[s.x - 1][s.y].european:
                 temp_world[s.x - 1][s.y].coins[coin] += diff
                 temp_world[s.x][s.y].coins[coin] -= diff
-            if x_less_then_xh and self.world[s.x + 1][s.y].is_euro_sity():
+            if x_less_then_xh and self.world[s.x + 1][s.y].european:
                 temp_world[s.x + 1][s.y].coins[coin] += diff
                 temp_world[s.x][s.y].coins[coin] -= diff
-            if y_more_then_yl and self.world[s.x][s.y - 1].is_euro_sity():
+            if y_more_then_yl and self.world[s.x][s.y - 1].european:
                 temp_world[s.x][s.y - 1].coins[coin] += diff
                 temp_world[s.x][s.y].coins[coin] -= diff
-            if y_less_then_yh and self.world[s.x][s.y + 1].is_euro_sity():
+            if y_less_then_yh and self.world[s.x][s.y + 1].european:
                 temp_world[s.x][s.y + 1].coins[coin] += diff
                 temp_world[s.x][s.y].coins[coin] -= diff
               
@@ -135,7 +145,7 @@ class testcase_data:
             temp_world = copy.deepcopy(self.world)
             for c in self.countries:
                 for sc in c.scoordinates:
-                    self.sity_iteration(self.world[sc.x][sc.y], temp_world)
+                    self.city_iteration(self.world[sc.x][sc.y], temp_world)
             self.world = temp_world
             self.iteration_count += 1
     
