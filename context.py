@@ -14,7 +14,7 @@ class country:
     def add_sity(self, sity):
         self.scoordinates.append(sity_coordinates(sity.x, sity.y))
     
-    def print(self):
+    def show(self):
         print(f"{self.name}: {self.complete}")
     
 
@@ -64,14 +64,10 @@ class testcase_data:
                 break
                 
         if append_allowed:
-            if c.xl < self.xl:
-                self.xl = c.xl
-            if c.yl < self.yl:
-                self.yl = c.yl
-            if c.xh > self.xh:
-                self.xh = c.xh
-            if c.yh > self.yh:
-                self.yh = c.yh
+            if c.xl < self.xl: self.xl = c.xl
+            if c.yl < self.yl: self.yl = c.yl
+            if c.xh > self.xh: self.xh = c.xh
+            if c.yh > self.yh: self.yh = c.yh
             self.countries.append(c)
             res = True
         return res
@@ -143,11 +139,11 @@ class testcase_data:
             self.world = temp_world
             self.iteration_count += 1
     
-    def print_contries(self):
+    def show_contries(self):
         print(f"Case number {self.num}")
         sorted_countries = sorted(sorted(self.countries, key=lambda x: x.name), key=lambda x: x.complete)
         for c in sorted_countries:
-            c.print()
+            c.show()
                             
                     
                         
