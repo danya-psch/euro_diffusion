@@ -1,6 +1,9 @@
 import sys
 import copy
 
+MAX_XY_VAL = 10
+MIN_XY_VAL = 1
+
 class country:
     def __init__(self, name, xl, yl, xh, yh):
         self.name = name
@@ -20,9 +23,9 @@ class country:
     @staticmethod
     def check_input_data(name, xl, yl, xh, yh) -> bool:
         res = True
-        if not (1 <= xl <= xh <= 10):
+        if not (MIN_XY_VAL <= xl <= xh <= MAX_XY_VAL):
             res = False
-        if not (1 <= yl <= yh <= 10):
+        if not (MIN_XY_VAL <= yl <= yh <= MAX_XY_VAL):
             res = False
         return res
 
@@ -85,34 +88,34 @@ class testcase_data:
     def generate_world(self):
         country_names = [c.name for c in self.countries]
         self.world = [[city(i, j, country_names) for i in range(self.yl, self.yh)] for j in range(self.xl, self.xh)]
-        for c in self.countries:
-            for i in range(c.xl, c.xh):
-                for j in range(c.yl, c.yh):
-                    s = city(i, j, country_names, c.name)
-                    self.world[i][j] = s
-                    c.add_city(s)
+        for country in self.countries:
+            for i in range(country.xl, country.xh):
+                for j in range(country.yl, country.yh):
+                    c = city(i, j, country_names, country.name)
+                    self.world[i][j] = c
+                    country.add_city(c)
   
     def check_completion(self) -> bool:
         res = True
         if self.world is not None:
             tc_complete = True
-            for c in self.countries:
+            for country in self.countries:
                 country_complete = True
-                for sc in c.scoordinates:
-                    s = self.world[sc.x][sc.y]
+                for sc in country.scoordinates:
+                    c = self.world[sc.x][sc.y]
                     city_complete = True
-                    for _, val in s.coins.items():
+                    for _, val in c.coins.items():
                         if not val:
                             city_complete = False
                             break
                         
                     if city_complete:
-                        s.complete = 1
-                    if not s.complete and country_complete:
+                        c.complete = 1
+                    if not c.complete and country_complete:
                         country_complete = False
                 if country_complete:
-                    if not c.complete:
-                        c.complete = self.iteration_count
+                    if not country.complete:
+                        country.complete = self.iteration_count
                 elif tc_complete:
                     tc_complete = False
             if tc_complete:
@@ -120,25 +123,25 @@ class testcase_data:
             res = tc_complete
         return res
 
-    def city_iteration(self, s: city, temp_world):
-        x_more_then_xl = s.x > self.xl
-        x_less_then_xh = s.x < self.xh - 1
-        y_more_then_yl = s.y > self.yl
-        y_less_then_yh = s.y < self.yh - 1
-        for coin, value in s.coins.items():
+    def city_iteration(self, c: city, temp_world):
+        x_more_then_xl = c.x > self.xl
+        x_less_then_xh = c.x < self.xh - 1
+        y_more_then_yl = c.y > self.yl
+        y_less_then_yh = c.y < self.yh - 1
+        for coin, value in c.coins.items():
             diff = value // DEF_COINS_DIV
-            if x_more_then_xl and self.world[s.x - 1][s.y].european:
-                temp_world[s.x - 1][s.y].coins[coin] += diff
-                temp_world[s.x][s.y].coins[coin] -= diff
-            if x_less_then_xh and self.world[s.x + 1][s.y].european:
-                temp_world[s.x + 1][s.y].coins[coin] += diff
-                temp_world[s.x][s.y].coins[coin] -= diff
-            if y_more_then_yl and self.world[s.x][s.y - 1].european:
-                temp_world[s.x][s.y - 1].coins[coin] += diff
-                temp_world[s.x][s.y].coins[coin] -= diff
-            if y_less_then_yh and self.world[s.x][s.y + 1].european:
-                temp_world[s.x][s.y + 1].coins[coin] += diff
-                temp_world[s.x][s.y].coins[coin] -= diff
+            if x_more_then_xl and self.world[c.x - 1][c.y].european:
+                temp_world[c.x - 1][c.y].coins[coin] += diff
+                temp_world[c.x][c.y].coins[coin] -= diff
+            if x_less_then_xh and self.world[c.x + 1][c.y].european:
+                temp_world[c.x + 1][c.y].coins[coin] += diff
+                temp_world[c.x][c.y].coins[coin] -= diff
+            if y_more_then_yl and self.world[c.x][c.y - 1].european:
+                temp_world[c.x][c.y - 1].coins[coin] += diff
+                temp_world[c.x][c.y].coins[coin] -= diff
+            if y_less_then_yh and self.world[c.x][c.y + 1].european:
+                temp_world[c.x][c.y + 1].coins[coin] += diff
+                temp_world[c.x][c.y].coins[coin] -= diff
               
     def iteration(self):
         if self.world is not None:
