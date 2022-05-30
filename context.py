@@ -12,22 +12,18 @@ class country:
         self.xh = int(xh)
         self.yh = int(yh)
         self.complete = 0
-        self.scoordinates = []
+        self.city_coordinates = []
         
     def add_city(self, city):
-        self.scoordinates.append(city_coordinates(city.x, city.y))
+        self.city_coordinates.append(city_coordinates(city.x, city.y))
     
     def show(self):
         print(f"{self.name}: {self.complete}")
 
     @staticmethod
     def check_input_data(name, xl, yl, xh, yh) -> bool:
-        res = True
-        if not (MIN_XY_VAL <= xl <= xh <= MAX_XY_VAL):
-            res = False
-        if not (MIN_XY_VAL <= yl <= yh <= MAX_XY_VAL):
-            res = False
-        return res
+        return False if (not (MIN_XY_VAL <= int(xl) <= int(xh) <= MAX_XY_VAL) or
+                         not (MIN_XY_VAL <= int(yl) <= int(yh) <= MAX_XY_VAL)) else True
 
 
 DEF_COINS_NUM = 1000000
@@ -65,7 +61,6 @@ class testcase_data:
         self.complete = 0
         
     def add_coutry(self, c: country) -> bool:
-        res = False
         append_allowed = True
         for cil in self.countries:
             if (cil.name == c.name) or \
@@ -75,15 +70,15 @@ class testcase_data:
                 cil.yl < c.yh <= cil.yh):
                 append_allowed = False
                 break
-                
+
         if append_allowed:
             if c.xl < self.xl: self.xl = c.xl
             if c.yl < self.yl: self.yl = c.yl
             if c.xh > self.xh: self.xh = c.xh
             if c.yh > self.yh: self.yh = c.yh
             self.countries.append(c)
-            res = True
-        return res
+            return True
+        return False
 
     def generate_world(self):
         country_names = [c.name for c in self.countries]
@@ -96,32 +91,31 @@ class testcase_data:
                     country.add_city(c)
   
     def check_completion(self) -> bool:
-        res = True
-        if self.world is not None:
-            tc_complete = True
-            for country in self.countries:
-                country_complete = True
-                for sc in country.scoordinates:
-                    c = self.world[sc.x][sc.y]
-                    city_complete = True
-                    for _, val in c.coins.items():
-                        if not val:
-                            city_complete = False
-                            break
-                        
-                    if city_complete:
-                        c.complete = 1
-                    if not c.complete and country_complete:
-                        country_complete = False
-                if country_complete:
-                    if not country.complete:
-                        country.complete = self.iteration_count
-                elif tc_complete:
-                    tc_complete = False
-            if tc_complete:
-                self.complete = self.iteration_count
-            res = tc_complete
-        return res
+        if self.world is None:
+            return True
+        tc_complete = True
+        for country in self.countries:
+            country_complete = True
+            for cc in country.city_coordinates:
+                c = self.world[cc.x][cc.y]
+                city_complete = True
+                for _, val in c.coins.items():
+                    if not val:
+                        city_complete = False
+                        break
+
+                if city_complete:
+                    c.complete = 1
+                if not c.complete and country_complete:
+                    country_complete = False
+            if country_complete:
+                if not country.complete:
+                    country.complete = self.iteration_count
+            elif tc_complete:
+                tc_complete = False
+        if tc_complete:
+            self.complete = self.iteration_count
+        return tc_complete
 
     def city_iteration(self, c: city, temp_world):
         x_more_then_xl = c.x > self.xl
@@ -147,8 +141,8 @@ class testcase_data:
         if self.world is not None:
             temp_world = copy.deepcopy(self.world)
             for c in self.countries:
-                for sc in c.scoordinates:
-                    self.city_iteration(self.world[sc.x][sc.y], temp_world)
+                for cc in c.city_coordinates:
+                    self.city_iteration(self.world[cc.x][cc.y], temp_world)
             self.world = temp_world
             self.iteration_count += 1
     
